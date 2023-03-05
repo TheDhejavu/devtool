@@ -1,4 +1,16 @@
 use clap::{arg, Command};
+mod tools;
+mod util;
+
+#[non_exhaustive]
+struct Language;
+
+impl Language {
+    pub const PYTHON: &str = "ruby";
+    pub const NODE: &str = "python";
+    pub const GO: &str = "go";
+    pub const JAVA: &str = "java";
+}
 
 fn cli() -> Command {
     Command::new("devtool")
@@ -13,16 +25,28 @@ fn cli() -> Command {
                 .arg_required_else_help(true),
         )
 }
+fn handle_init(value: &str) {
+    match value {
+        Language::NODE => tools::install_python_deps(""),
+        Language::PYTHON => println!("PYTHON"),
+        Language::JAVA => println!("JAVA"),
+        Language::GO => println!("GOLANG"),
+        _ => println!("language is currently not supported"),
+    }
+}
 
 fn main() {
     let matches = cli().get_matches();
 
     match matches.subcommand() {
         Some(("init", sub_matches)) => {
-            println!(
-                "Initalizing.... {}",
-                sub_matches.get_one::<String>("LANG").expect("required")
-            );
+            println!("Initalizing....");
+            let value = sub_matches
+                .get_one::<String>("LANG")
+                .expect("required")
+                .as_str();
+
+            handle_init(value)
         }
         Some(("update", sub_matches)) => {
             println!(

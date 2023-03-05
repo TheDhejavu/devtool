@@ -14,13 +14,13 @@ Devtool is a Rust cli for installing developer tools for different environment a
 
 ### Languages
 
-- 👉 Go compiler (https://go.dev/doc/install)
+- Go compiler (https://go.dev/doc/install)
 
 ### Code Editors
 
-- 👉 Vscode (https://code.visualstudio.com/download)
+- Vscode (https://code.visualstudio.com/download)
 
 ## Databases
 
-- 👉 Postgresql (https://www.postgresql.org/)
-- 👉 Mongodb (https://www.mongodb.com/try/download/community)
+- Postgresql (https://www.postgresql.org/)
+- Mongodb (https://www.mongodb.com/try/download/community)
