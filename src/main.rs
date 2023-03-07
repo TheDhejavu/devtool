@@ -6,8 +6,8 @@ mod util;
 struct Language;
 
 impl Language {
-    pub const PYTHON: &str = "ruby";
-    pub const NODE: &str = "python";
+    pub const PYTHON: &str = "python";
+    pub const NODE: &str = "node";
     pub const GO: &str = "go";
     pub const JAVA: &str = "java";
 }
@@ -27,8 +27,8 @@ fn cli() -> Command {
 }
 fn handle_init(value: &str) {
     match value {
-        Language::NODE => tools::install_python_deps(""),
-        Language::PYTHON => println!("PYTHON"),
+        Language::NODE => println!("NODE"),
+        Language::PYTHON => tools::install_python_deps(),
         Language::JAVA => println!("JAVA"),
         Language::GO => println!("GOLANG"),
         _ => println!("language is currently not supported"),
@@ -40,7 +40,6 @@ fn main() {
 
     match matches.subcommand() {
         Some(("init", sub_matches)) => {
-            println!("Initalizing....");
             let value = sub_matches
                 .get_one::<String>("LANG")
                 .expect("required")
