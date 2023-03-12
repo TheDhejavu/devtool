@@ -1,5 +1,9 @@
 use std::env;
 use std::process::{Command, Stdio};
+
+use crate::builder::build_go_boilerplate;
+use crate::Language;
+
 struct OS;
 
 impl OS {
@@ -8,54 +12,71 @@ impl OS {
     pub const MACOS: &str = "macos";
 }
 
-pub fn install_python_deps() {
+pub fn install_deps(lang: &str) {
     let os = env::consts::OS;
-    println!("Installing python deps...... {}", os);
+    println!("Installing {} deps for ... {}", os, lang);
 
     match os {
         OS::MACOS => {
-            if !is_docker_installed() {
-                // Install brew
-                if !is_brew_installed() {
-                    let mut out = Command::new("/bin/bash")
-                        .arg("-c")
-                        .arg("https://raw.githubusercontent.com/Homebrew/install/master/install.sh")
-                        .stdout(Stdio::null())
-                        .stderr(Stdio::null())
-                        .spawn()
-                        .expect("failed to execute process");
-                    out.wait().expect("Failing while waiting");
-
-                    let mut out = Command::new("/bin/bash")
-                        .arg("./install.sh")
-                        .spawn()
-                        .expect("failed to execute process");
-                    out.wait().expect("Failing while waiting");
-
-                    let mut out = Command::new("rm")
-                        .arg("-rf")
-                        .arg("./install.sh")
-                        .spawn()
-                        .expect("failed to execute process");
-                    out.wait().expect("Failing while waiting");
-                }
-
-                println!("Installing docker...");
-                let mut out = Command::new("brew")
-                    .arg("install")
-                    .arg("--cask")
-                    .arg("docker")
-                    .spawn()
-                    .expect("failed to install docker");
-                out.wait().expect("Failing while waiting");
-
-                println!("{:?}", out);
+            install_mac_os_deps();
+            match lang {
+                Language::GO => build_go_boilerplate("", ""),
+                _ => println!("language is currently not supported"),
             }
         }
-        OS::LINUX => println!("<MACOS>"),
-        OS::WINDOW => println!("WINDOW"),
+        OS::LINUX => println!("</LINUX>"),
+        OS::WINDOW => println!("</WINDOW>"),
         _ => println!("OS is currently not supported"),
     }
+}
+
+pub fn install_mac_os_deps() {
+    if !is_docker_installed() {
+        // Install brew
+        if !is_brew_installed() {
+            install_brew()
+        }
+
+        // install docker
+        install_docker()
+    }
+}
+
+pub fn install_brew() {
+    let mut out = Command::new("/bin/bash")
+        .arg("-c")
+        .arg("https://raw.githubusercontent.com/Homebrew/install/master/install.sh")
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .expect("failed to execute process");
+    out.wait().expect("Failing while waiting");
+
+    let mut out = Command::new("/bin/bash")
+        .arg("./install.sh")
+        .spawn()
+        .expect("failed to execute process");
+    out.wait().expect("Failing while waiting");
+
+    let mut out = Command::new("rm")
+        .arg("-rf")
+        .arg("./install.sh")
+        .spawn()
+        .expect("failed to execute process");
+    out.wait().expect("Failing while waiting");
+}
+
+pub fn install_docker() {
+    println!("Installing docker...");
+    let mut out = Command::new("brew")
+        .arg("install")
+        .arg("--cask")
+        .arg("docker")
+        .spawn()
+        .expect("failed to install docker");
+    out.wait().expect("Failing while waiting");
+
+    println!("{:?}", out);
 }
 
 pub fn is_docker_installed() -> bool {

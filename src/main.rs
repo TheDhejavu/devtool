@@ -1,4 +1,5 @@
 use clap::{arg, Command};
+mod builder;
 mod tools;
 mod util;
 
@@ -28,7 +29,7 @@ fn cli() -> Command {
 fn handle_init(value: &str) {
     match value {
         Language::NODE => println!("NODE"),
-        Language::PYTHON => tools::install_python_deps(),
+        Language::PYTHON => tools::install_deps(Language::PYTHON),
         Language::JAVA => println!("JAVA"),
         Language::GO => println!("GOLANG"),
         _ => println!("language is currently not supported"),
