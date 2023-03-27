@@ -31,7 +31,7 @@ fn handle_init(value: &str) {
         Language::NODE => println!("NODE"),
         Language::PYTHON => tools::install_deps(Language::PYTHON),
         Language::JAVA => println!("JAVA"),
-        Language::GO => println!("GOLANG"),
+        Language::GO => tools::install_deps(Language::GO),
         _ => println!("language is currently not supported"),
     }
 }
