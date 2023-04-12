@@ -1,32 +1,26 @@
 use std::env;
 use std::process::{Command, Stdio};
+use log::{info, error};
 
-use crate::builder::build_go_boilerplate;
-use crate::Language;
+use crate::builder;
+use crate::lang::Language;
+use crate::os::*;
 
-struct OS;
-
-impl OS {
-    pub const WINDOW: &str = "window";
-    pub const LINUX: &str = "linux";
-    pub const MACOS: &str = "macos";
-}
-
-pub fn install_deps(lang: &str) {
+pub fn install_deps(lang: &str, project_name: &str) {
     let os = env::consts::OS;
-    println!("Installing {} deps for ... {}", os, lang);
+    info!("Installing {} deps for {}", os, lang);
 
     match os {
         OS::MACOS => {
             install_mac_os_deps();
             match lang {
-                Language::GO => build_go_boilerplate("", ""),
-                _ => println!("language is currently not supported"),
+                Language::GO => builder::build_go_boilerplate(project_name),
+                _ => info!("language is currently not supported"),
             }
         }
         OS::LINUX => println!("</LINUX>"),
         OS::WINDOW => println!("</WINDOW>"),
-        _ => println!("OS is currently not supported"),
+        _ => error!("OS is currently not supported"),
     }
 }
 
@@ -67,7 +61,7 @@ pub fn install_brew() {
 }
 
 pub fn install_docker() {
-    println!("Installing docker...");
+    info!("Installing docker...");
     let mut out = Command::new("brew")
         .arg("install")
         .arg("--cask")
@@ -76,7 +70,7 @@ pub fn install_docker() {
         .expect("failed to install docker");
     out.wait().expect("Failing while waiting");
 
-    println!("{:?}", out);
+    info!("{:?}", out);
 }
 
 pub fn is_docker_installed() -> bool {

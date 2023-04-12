@@ -1,10 +1,9 @@
-// An attribute to hide warnings for unused code.
 #![allow(dead_code)]
 use std::fs;
+use log::info;
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
-use crate::Language;
 
 #[derive(Debug)]
 struct FileSystem {
@@ -13,11 +12,15 @@ struct FileSystem {
     next: Vec<Option<Box<FileSystem>>>,
     content: Option<String>,
 }
+
 const FILE_TYPE: &str = "file";
 const FOLDER_TYPE: &str = "folder";
-const DEFAULT_FOLDER: &str = "boilerplate";
+         
+pub fn build_go_boilerplate(project_name: &str) {
+    info!("building go boilerplate...");
+    let mut filesys: HashMap<String, FileSystem> = HashMap::new();
 
-const GO_MAIN_CONTENT: &str = r#"
+    let content: &str = r#"
 package main
 
 import "fmt"
@@ -26,15 +29,11 @@ func main() {
     fmt.Println("hello world!")
 }
 "#;
-               
-pub fn build_go_boilerplate(_path: &str, name: &str) {
-    println!("building go boilerplate...");
-    let mut filesys: HashMap<String, FileSystem> = HashMap::new();
-
+      
     // construct go filesystem
     let go_filesystem = FileSystem {
         ptype: String::from(FOLDER_TYPE),
-        name: String::from(name),
+        name: String::from(project_name),
         content: None,
         next: vec![
             Some(Box::new(FileSystem {
@@ -77,37 +76,36 @@ pub fn build_go_boilerplate(_path: &str, name: &str) {
                 ptype: String::from(FILE_TYPE),
                 name: String::from("main.go"),
                 next: vec![],
-                content: Some(String::from(GO_MAIN_CONTENT)),
+                content: Some(String::from(content)),
             })),
         ],
     };
 
-    let folder_path  = format!("./{}_{}", Language::GO, DEFAULT_FOLDER);
+    let folder_path  = format!("./{}", project_name);
     filesys.insert(folder_path.to_owned(), go_filesystem);
 
-    // recursively crrate folders & files
+    // recursively create folders & files
     create_fs(&folder_path, filesys).unwrap();
     
 }
 
 fn create_fs(path : &String, filesys: HashMap<String, FileSystem>)-> std::io::Result<()> {
-    println!("creating fs.");
     fs::create_dir_all(path)?;
 
-    for (key, value) in filesys {
-        println!("Path: {} ", key);
+    for (_key, value) in filesys {
         for n  in value.next {
             let next = n.unwrap();
             let ptype = next.ptype;
             let content = next.content.unwrap_or_default();
             let current_path = format!("{}/{}", path, next.name);
-            println!("=== folder: {} ", current_path);
             
             match ptype.as_str() {
                 FOLDER_TYPE => {
+                    info!("=== [folder]: {} ", current_path);
                     fs::create_dir_all(current_path)?;
                 },
                 FILE_TYPE => {
+                    info!("=== [file]: {} ", current_path);
                     let mut file = File::create(current_path).expect("Error encountered while creating file!");
                     file.write_all(content.as_bytes()).expect("Error while writing to file");
                 },
