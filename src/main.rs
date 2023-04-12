@@ -2,13 +2,13 @@ use log::*;
 use log4rs::append::console::ConsoleAppender;
 use log4rs::config::{Appender, Config, Root};
 
-use clap::{Arg, Command, ArgMatches};
+use clap::{Arg, ArgMatches, Command};
 use lang::Language;
 
 mod builder;
-mod tools;
 mod lang;
 mod os;
+mod tools;
 
 fn create_cmd(sub_matches: &ArgMatches) {
     let project_name = sub_matches
@@ -21,13 +21,13 @@ fn create_cmd(sub_matches: &ArgMatches) {
         .expect("required")
         .as_str();
 
-    info!("Create Project: {} Language: {}",project_name, lang);
+    info!("Create Project: {} Language: {}", project_name, lang);
     match lang {
         Language::NODE => println!("NODE"),
         Language::PYTHON => tools::install_deps(Language::PYTHON, project_name),
         Language::JAVA => println!("JAVA"),
         Language::GO => tools::install_deps(Language::GO, project_name),
-            _ =>  error!("language is currently not supported")
+        _ => error!("language is currently not supported"),
     }
 }
 
@@ -42,7 +42,7 @@ fn update_cmd(sub_matches: &ArgMatches) {
         .expect("required")
         .as_str();
 
-    info!("Update Project: {} Language: {}",project_name, lang);
+    info!("Update Project: {} Language: {}", project_name, lang);
 }
 
 fn cli() -> Command {
@@ -85,14 +85,8 @@ fn main() {
     let stdout = ConsoleAppender::builder().build();
 
     let config = Config::builder()
-        .appender(
-            Appender::builder()
-                .build("stdout", Box::new(stdout)))
-        .build(
-       Root::builder().
-                appender("stdout").
-                build(LevelFilter::Trace)
-        )
+        .appender(Appender::builder().build("stdout", Box::new(stdout)))
+        .build(Root::builder().appender("stdout").build(LevelFilter::Trace))
         .unwrap();
 
     log4rs::init_config(config).unwrap();
@@ -102,6 +96,6 @@ fn main() {
     match matches.subcommand() {
         Some(("create", sub_matches)) => create_cmd(sub_matches),
         Some(("update", sub_matches)) => update_cmd(sub_matches),
-        _ => unreachable!(), 
+        _ => unreachable!(),
     }
 }

@@ -1,6 +1,6 @@
+use log::{error, info};
 use std::env;
 use std::process::{Command, Stdio};
-use log::{info, error};
 
 use crate::builder;
 use crate::lang::Language;
