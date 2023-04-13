@@ -1,6 +1,6 @@
 # devtool
 
-Devtool is a Rust cli for installing developer tools for different environment and programming language (Mac & Linux).
+Devtool is a Rust cli for installing developer tools for different environment and programming language (Mac & Linux & Windows OS).
 
 ## O.S
 
@@ -9,3 +9,8 @@ Devtool is a Rust cli for installing developer tools for different environment a
 ## Programming languages
 
 [Go](https://go.dev/) | [Ruby](https://www.ruby-lang.org/en/) | [NodeJS/Javascript](https://nodejs.org/en/) | [Typescript](https://www.typescriptlang.org/) | [Python](https://www.python.org/) | [Rust](https://www.rust-lang.org/) | [Java](https://www.java.com/en/)
+
+
+## Run 
+
+    cargo run  create --lang <Programming Language> --project <Project Name> 

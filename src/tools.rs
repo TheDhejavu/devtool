@@ -56,7 +56,7 @@ fn install_docker_on_macos() {
     let check_output = run_command("docker", &["--version"]);
 
     if check_output.is_ok() && check_output.unwrap().status.success() {
-        println!("Docker is already installed on macOS!");
+        info!("Docker is already installed on macOS!");
     } else {
         if let Ok(check_brew_output) = run_command("brew", &["--version"]) {
             if check_brew_output.status.success() {
@@ -185,4 +185,25 @@ ENTRYPOINT [\"./scripts/entrypoint.sh\"]",
     );
 
     return dockerfile_contents;
+}
+
+
+pub fn generate_makefile() -> String {
+    // Define the Makefile contents
+    let makefile_contents = format!(
+       r#"COMPOSE_FILE=docker-compose.yml
+
+.PHONY: all run stop
+
+all: build run
+
+run:
+	docker-compose -f $(COMPOSE_FILE) up -d
+
+stop:
+	docker-compose -f $(COMPOSE_FILE) down
+
+"#,);
+
+    return makefile_contents;
 }

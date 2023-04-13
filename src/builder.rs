@@ -4,7 +4,7 @@ use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 
-use crate::tools::{generate_docker_compose, generate_docker_file};
+use crate::tools::*;
 
 #[derive(Debug)]
 struct FileSystem {
@@ -125,7 +125,7 @@ pub fn build_go_boilerplate(project_name: &str) {
                 ptype: String::from(TY_FILE),
                 name: String::from("makefile"),
                 next: vec![],
-                content: Some(String::from("")),
+                content: Some(String::from(generate_makefile())),
             })),
             Some(Box::new(FileSystem {
                 ptype: String::from(TY_FILE),
