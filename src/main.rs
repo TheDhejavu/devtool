@@ -31,7 +31,11 @@ fn create_cmd(sub_matches: &ArgMatches) {
     }
 }
 
-fn update_cmd(sub_matches: &ArgMatches) {
+fn update_cmd(_sub_matches: &ArgMatches) {
+    info!("Deploying...");
+}
+
+fn deploy_cmd(sub_matches: &ArgMatches) {
     let project_name = sub_matches
         .get_one::<String>("project")
         .expect("required")
@@ -79,6 +83,11 @@ fn cli() -> Command {
                         .long("project")
                 )
         )
+
+        .subcommand(
+            Command::new("deploy")
+                .about("Deploy project")
+        )
 }
 
 fn main() {
@@ -96,6 +105,7 @@ fn main() {
     match matches.subcommand() {
         Some(("create", sub_matches)) => create_cmd(sub_matches),
         Some(("update", sub_matches)) => update_cmd(sub_matches),
+        Some(("deploy", sub_matches)) => deploy_cmd(sub_matches),
         _ => unreachable!(),
     }
 }

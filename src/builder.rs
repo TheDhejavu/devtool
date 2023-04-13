@@ -1,9 +1,10 @@
 #![allow(dead_code)]
 use log::info;
-use std::collections::HashMap;
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
+
+use crate::tools::{generate_docker_compose, generate_docker_file};
 
 #[derive(Debug)]
 struct FileSystem {
@@ -13,106 +14,163 @@ struct FileSystem {
     content: Option<String>,
 }
 
-const FILE_TYPE: &str = "file";
-const FOLDER_TYPE: &str = "folder";
+const TY_FILE: &str = "file";
+const TY_FOLDER: &str = "folder";
+
+fn generate_main_go(project_name: &str) -> String {
+    let main_go = format!(
+        r#"
+package main
+    
+import "fmt"
+                        
+func main() {{
+    fmt.Println("hello world! {}")
+}}
+"#,
+        project_name
+    );
+
+    return main_go;
+}
+
+fn generate_entrypoint_sh(project_name: &str) -> String {
+    let entrypoint_sh = format!(
+        r#"
+#!/usr/bin/env bash
+set -e
+echo "Buidling  {project_name}..."
+go build -tags netgo -ldflags '-s -w' -o  {project_name}
+echo "Exiting  {project_name}...""#,
+        project_name = project_name,
+    );
+
+    return entrypoint_sh;
+}
 
 pub fn build_go_boilerplate(project_name: &str) {
     info!("building go boilerplate...");
-    let mut filesys: HashMap<String, FileSystem> = HashMap::new();
-
-    let content: &str = r#"
-package main
-
-import "fmt"
-                    
-func main() {
-    fmt.Println("hello world!")
-}
-"#;
 
     // construct go filesystem
-    let go_filesystem = FileSystem {
-        ptype: String::from(FOLDER_TYPE),
+    let filesystem = vec![Some(Box::new(FileSystem {
+        ptype: String::from(TY_FOLDER),
         name: String::from(project_name),
         content: None,
         next: vec![
             Some(Box::new(FileSystem {
-                ptype: String::from(FOLDER_TYPE),
+                ptype: String::from(TY_FOLDER),
                 name: String::from("pkg"),
                 content: None,
                 next: vec![],
             })),
             Some(Box::new(FileSystem {
-                ptype: String::from(FOLDER_TYPE),
+                ptype: String::from(TY_FOLDER),
                 name: String::from("cmd"),
                 content: None,
                 next: vec![],
             })),
             Some(Box::new(FileSystem {
-                ptype: String::from(FOLDER_TYPE),
+                ptype: String::from(TY_FOLDER),
                 name: String::from("migrations"),
                 next: vec![],
                 content: None,
             })),
             Some(Box::new(FileSystem {
-                ptype: String::from(FOLDER_TYPE),
+                ptype: String::from(TY_FOLDER),
+                name: String::from("config"),
+                next: vec![Some(Box::new(FileSystem {
+                    ptype: String::from(TY_FILE),
+                    name: String::from("config.go"),
+                    next: vec![],
+                    content: Some(String::from("package config")),
+                }))],
+                content: None,
+            })),
+            Some(Box::new(FileSystem {
+                ptype: String::from(TY_FOLDER),
                 name: String::from("internal"),
                 next: vec![],
                 content: None,
             })),
             Some(Box::new(FileSystem {
-                ptype: String::from(FOLDER_TYPE),
+                ptype: String::from(TY_FOLDER),
                 name: String::from("k8s"),
                 next: vec![],
                 content: None,
             })),
             Some(Box::new(FileSystem {
-                ptype: String::from(FOLDER_TYPE),
+                ptype: String::from(TY_FOLDER),
                 name: String::from("build"),
                 next: vec![],
                 content: None,
             })),
             Some(Box::new(FileSystem {
-                ptype: String::from(FILE_TYPE),
+                ptype: String::from(TY_FOLDER),
+                name: String::from("scripts"),
+                next: vec![Some(Box::new(FileSystem {
+                    ptype: String::from(TY_FILE),
+                    name: String::from("entrypoint.sh"),
+                    next: vec![],
+                    content: Some(String::from(generate_entrypoint_sh(project_name))),
+                }))],
+                content: None,
+            })),
+            Some(Box::new(FileSystem {
+                ptype: String::from(TY_FILE),
                 name: String::from("main.go"),
                 next: vec![],
-                content: Some(String::from(content)),
+                content: Some(String::from(generate_main_go(project_name))),
+            })),
+            Some(Box::new(FileSystem {
+                ptype: String::from(TY_FILE),
+                name: String::from("makefile"),
+                next: vec![],
+                content: Some(String::from("")),
+            })),
+            Some(Box::new(FileSystem {
+                ptype: String::from(TY_FILE),
+                name: String::from("Dockerfile"),
+                next: vec![],
+                content: Some(String::from(generate_docker_file(project_name))),
+            })),
+            Some(Box::new(FileSystem {
+                ptype: String::from(TY_FILE),
+                name: String::from("docker-compose.yml"),
+                next: vec![],
+                content: Some(String::from(generate_docker_compose(project_name))),
             })),
         ],
-    };
+    }))];
 
-    let folder_path = format!("./{}", project_name);
-    filesys.insert(folder_path.to_owned(), go_filesystem);
-
+    let root = String::from("./");
     // recursively create folders & files
-    create_fs(&folder_path, filesys).unwrap();
+    recursive_fs(&root, filesystem).unwrap();
 }
 
-fn create_fs(path: &String, filesys: HashMap<String, FileSystem>) -> std::io::Result<()> {
-    fs::create_dir_all(path)?;
+fn recursive_fs(path: &String, filesys: Vec<Option<Box<FileSystem>>>) -> std::io::Result<()> {
+    for current in filesys {
+        let fs = current.unwrap();
+        let next = fs.next;
+        let ptype = fs.ptype;
+        let content = fs.content.unwrap_or_default();
+        let current_path = format!("{}/{}", path, fs.name);
 
-    for (_key, value) in filesys {
-        for n in value.next {
-            let next = n.unwrap();
-            let ptype = next.ptype;
-            let content = next.content.unwrap_or_default();
-            let current_path = format!("{}/{}", path, next.name);
-
-            match ptype.as_str() {
-                FOLDER_TYPE => {
-                    info!("=== [folder]: {} ", current_path);
-                    fs::create_dir_all(current_path)?;
-                }
-                FILE_TYPE => {
-                    info!("=== [file]: {} ", current_path);
-                    let mut file =
-                        File::create(current_path).expect("Error encountered while creating file!");
-                    file.write_all(content.as_bytes())
-                        .expect("Error while writing to file");
-                }
-                _ => {}
+        match ptype.as_str() {
+            TY_FOLDER => {
+                info!("=== [folder]: {} ", current_path);
+                fs::create_dir_all(current_path.clone())?;
             }
+            TY_FILE => {
+                info!("=== [file]: {} ", current_path);
+                let mut file = File::create(current_path.clone())
+                    .expect("Error encountered while creating file!");
+                file.write_all(content.as_bytes())
+                    .expect("Error while writing to file");
+            }
+            _ => {}
         }
+
+        recursive_fs(&current_path, next).unwrap()
     }
     Ok(())
 }
