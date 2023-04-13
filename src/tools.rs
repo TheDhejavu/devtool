@@ -78,13 +78,13 @@ fn install_docker_on_macos() {
         );
 
         if output.is_err()  {
-            error!("Failed to download Homebrew installation script");
+            error!("Failed to download Homebrew installation script. Manually Install brew on your OS or try again!");
             return;
         }
 
         let out = output.unwrap();
         if !out.status.success() {
-            error!("Failed to download Homebrew installation script");
+            error!("Failed to download Homebrew installation script. Manually Install brew on your OS or try again!");
             return;
         }
 
@@ -99,7 +99,7 @@ fn install_docker_on_macos() {
             if docker_output.is_ok() && docker_output.unwrap().status.success() {
                 info!("Docker installed successfully on macOS!");
             } else {
-                error!("Failed to install Docker on macOS");
+                error!("Failed to install Docker on macOS. Manually Install docker on your OS or try again!");
             }
         } else {
             error!("Failed to install Homebrew");
@@ -118,7 +118,7 @@ fn install_docker_on_windows() {
         if output.is_ok() && output.unwrap().status.success() {
             println!("Docker installed successfully on Windows!");
         } else {
-            println!("Failed to install Docker on Windows");
+            println!("Failed to install Docker on Windows. Manually Install docker on your OS or try again!");
         }
     }
 }
