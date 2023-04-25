@@ -31,11 +31,11 @@ fn create_cmd(sub_matches: &ArgMatches) {
     }
 }
 
-fn update_cmd(_sub_matches: &ArgMatches) {
+fn deploy_cmd(_sub_matches: &ArgMatches) {
     info!("Deploying...");
 }
 
-fn deploy_cmd(sub_matches: &ArgMatches) {
+fn update_cmd(sub_matches: &ArgMatches) {
     let project_name = sub_matches
         .get_one::<String>("project")
         .expect("required")
